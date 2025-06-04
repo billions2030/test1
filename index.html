@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>총알 피하기 게임</title>
+  <style>
+    body {
+      margin: 0;
+      background: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+    #game {
+      position: relative;
+      width: 400px;
+      height: 600px;
+      margin: 20px auto;
+      background: #222;
+      border: 2px solid #555;
+    }
+    #player {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      background: #00f;
+      bottom: 10px;
+      left: 180px;
+    }
+    .bullet {
+      position: absolute;
+      width: 10px;
+      height: 20px;
+      background: red;
+    }
+    #gameOver {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 36px;
+      display: none;
+      color: yellow;
+    }
+  </style>
+</head>
+<body>
+  <div id="game">
+    <div id="player"></div>
+    <div id="gameOver">💥 Game Over 💥</div>
+  </div>
+
+  <script>
+    const game = document.getElementById("game");
+    const player = document.getElementById("player");
+    const gameOverText = document.getElementById("gameOver");
+
+    let playerX = 180;
+    const speed = 10;
+    let bullets = [];
+    let isGameOver = false;
+
+    // 플레이어 이동
+    document.addEventListener("keydown", (e) => {
+      if (isGameOver) return;
+      if (e.key === "ArrowLeft" && playerX > 0) {
+        playerX -= speed;
+      } else if (e.key === "ArrowRight" && playerX < 360) {
+        playerX += speed;
+      }
+      player.style.left = playerX + "px";
+    });
+
+    // 총알 생성
+    function createBullet() {
+      const bullet = document.createElement("div");
+      bullet.classList.add("bullet");
+      bullet.style.left = Math.floor(Math.random() * 390) + "px";
+      bullet.style.top = "0px";
+      game.appendChild(bullet);
+      bullets.push(bullet);
+    }
+
+    // 충돌 감지
+    function checkCollision(bullet) {
+      const bRect = bullet.getBoundingClientRect();
+      const pRect = player.getBoundingClientRect();
+
+      return !(
+        bRect.bottom < pRect.top ||
+        bRect.top > pRect.bottom ||
+        bRect.right < pRect.left ||
+        bRect.left > pRect.right
+      );
+    }
+
+    // 게임 루프
+    function gameLoop() {
+      if (isGameOver) return;
+
+      bullets.forEach((bullet, index) => {
+        let top = parseInt(bullet.style.top);
+        bullet.style.top = top + 5 + "px";
+
+        if (checkCollision(bullet)) {
+          gameOverText.style.display = "block";
+          isGameOver = true;
+        }
+
+        if (top > 600) {
+          game.removeChild(bullet);
+          bullets.splice(index, 1);
+        }
+      });
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    // 총알 주기적으로 생성
+    setInterval(() => {
+      if (!isGameOver) createBullet();
+    }, 500);
+
+    gameLoop();
+  </script>
+</body>
+</html>
