@@ -46,3 +46,178 @@
       transform: translate(-50%, -50%);
       font-size: 36px;
       display: none;
+      color: yellow;
+      text-shadow: 0 0 10px red;
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 20px;
+      color: white;
+    }
+    #restartBtn {
+      position: absolute;
+      top: 60%;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 10px 20px;
+      font-size: 18px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      display: none;
+    }
+    #restartBtn:hover {
+      background: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <div id="game">
+    <div id="score">점수: 0</div>
+    <div id="player"></div>
+    <div id="gameOver">💥 Game Over 💥</div>
+    <button id="restartBtn">다시 시작</button>
+  </div>
+
+  <script>
+    const game = document.getElementById("game");
+    const player = document.getElementById("player");
+    const gameOverText = document.getElementById("gameOver");
+    const scoreElement = document.getElementById("score");
+    const restartBtn = document.getElementById("restartBtn");
+
+    let playerX = 180;
+    let playerY = 550;
+    const speed = 5;
+    let bullets = [];
+    let isGameOver = false;
+    let score = 0;
+    let bulletSpeed = 5;
+    let bulletInterval = 500;
+    let gameSpeed = 1;
+    let keys = {};
+
+    // 키 입력 감지
+    document.addEventListener("keydown", (e) => {
+      keys[e.key] = true;
+    });
+    document.addEventListener("keyup", (e) => {
+      keys[e.key] = false;
+    });
+
+    function movePlayer() {
+      if (keys["ArrowLeft"] && playerX > 0) {
+        playerX -= speed;
+      }
+      if (keys["ArrowRight"] && playerX < 360) {
+        playerX += speed;
+      }
+      if (keys["ArrowUp"] && playerY > 0) {
+        playerY -= speed;
+      }
+      if (keys["ArrowDown"] && playerY < 560) {
+        playerY += speed;
+      }
+
+      player.style.left = playerX + "px";
+      player.style.top = playerY + "px";
+    }
+
+    function createBullet() {
+      const bullet = document.createElement("div");
+      bullet.classList.add("bullet");
+      bullet.style.left = Math.floor(Math.random() * 388) + "px";
+      bullet.style.top = "0px";
+      game.appendChild(bullet);
+      bullets.push(bullet);
+    }
+
+    function checkCollision(bullet) {
+      const bRect = bullet.getBoundingClientRect();
+      const pRect = player.getBoundingClientRect();
+
+      return !(
+        bRect.bottom < pRect.top ||
+        bRect.top > pRect.bottom ||
+        bRect.right < pRect.left ||
+        bRect.left > pRect.right
+      );
+    }
+
+    function resetGame() {
+      bullets.forEach(bullet => game.removeChild(bullet));
+      bullets = [];
+      playerX = 180;
+      playerY = 550;
+      player.style.left = playerX + "px";
+      player.style.top = playerY + "px";
+      isGameOver = false;
+      score = 0;
+      bulletSpeed = 5;
+      bulletInterval = 500;
+      gameSpeed = 1;
+      scoreElement.textContent = "점수: 0";
+      gameOverText.style.display = "none";
+      restartBtn.style.display = "none";
+    }
+
+    function gameLoop() {
+      if (isGameOver) return;
+
+      movePlayer();
+
+      for (let i = bullets.length - 1; i >= 0; i--) {
+        const bullet = bullets[i];
+        let top = parseInt(bullet.style.top);
+        bullet.style.top = top + bulletSpeed + "px";
+
+        if (checkCollision(bullet)) {
+          gameOverText.style.display = "block";
+          restartBtn.style.display = "block";
+          isGameOver = true;
+          return;
+        }
+
+        if (top > 600) {
+          game.removeChild(bullet);
+          bullets.splice(i, 1);
+          score++;
+          scoreElement.textContent = "점수: " + score;
+
+          if (score % 10 === 0) {
+            bulletSpeed += 0.5;
+            bulletInterval = Math.max(200, bulletInterval - 50);
+            gameSpeed += 0.1;
+
+            clearInterval(bulletIntervalId);
+            bulletIntervalId = setInterval(() => {
+              if (!isGameOver) createBullet();
+            }, bulletInterval);
+          }
+        }
+      }
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    let bulletIntervalId = setInterval(() => {
+      if (!isGameOver) createBullet();
+    }, bulletInterval);
+
+    restartBtn.addEventListener("click", () => {
+      resetGame();
+      clearInterval(bulletIntervalId);
+      bulletIntervalId = setInterval(() => {
+        if (!isGameOver) createBullet();
+      }, bulletInterval);
+      gameLoop();
+    });
+
+    gameLoop();
+  </script>
+</body>
+</html>
