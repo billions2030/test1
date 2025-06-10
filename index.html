@@ -26,17 +26,18 @@
       height: 40px;
       background: linear-gradient(135deg, #00f, #55f);
       border-radius: 50%;
-      bottom: 10px;
+      top: 550px;
       left: 180px;
       box-shadow: 0 0 10px #55f;
     }
     .bullet {
       position: absolute;
-      width: 10px;
-      height: 20px;
-      background: linear-gradient(to bottom, #f00, #f55);
-      border-radius: 5px;
-      box-shadow: 0 0 5px #f55;
+      width: 12px;
+      height: 30px;
+      background: linear-gradient(to bottom, #aaa, #333);
+      border-radius: 6px 6px 2px 2px;
+      box-shadow: 0 0 8px rgba(255, 0, 0, 0.5);
+      transform: rotate(180deg);
     }
     #gameOver {
       position: absolute;
@@ -45,157 +46,3 @@
       transform: translate(-50%, -50%);
       font-size: 36px;
       display: none;
-      color: yellow;
-      text-shadow: 0 0 10px red;
-    }
-    #score {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      font-size: 20px;
-      color: white;
-    }
-    #restartBtn {
-      position: absolute;
-      top: 60%;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 10px 20px;
-      font-size: 18px;
-      background: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      display: none;
-    }
-    #restartBtn:hover {
-      background: #45a049;
-    }
-  </style>
-</head>
-<body>
-  <div id="game">
-    <div id="score">점수: 0</div>
-    <div id="player"></div>
-    <div id="gameOver">💥 Game Over 💥</div>
-    <button id="restartBtn">다시 시작</button>
-  </div>
-
-  <script>
-    const game = document.getElementById("game");
-    const player = document.getElementById("player");
-    const gameOverText = document.getElementById("gameOver");
-    const scoreElement = document.getElementById("score");
-    const restartBtn = document.getElementById("restartBtn");
-
-    let playerX = 180;
-    const speed = 10;
-    let bullets = [];
-    let isGameOver = false;
-    let score = 0;
-    let bulletSpeed = 5;
-    let bulletInterval = 500;
-    let gameSpeed = 1;
-
-    // 플레이어 이동
-    document.addEventListener("keydown", (e) => {
-      if (isGameOver) return;
-      if (e.key === "ArrowLeft" && playerX > 0) {
-        playerX -= speed;
-      } else if (e.key === "ArrowRight" && playerX < 360) {
-        playerX += speed;
-      }
-      player.style.left = playerX + "px";
-    });
-
-    // 총알 생성
-    function createBullet() {
-      const bullet = document.createElement("div");
-      bullet.classList.add("bullet");
-      bullet.style.left = Math.floor(Math.random() * 390) + "px";
-      bullet.style.top = "0px";
-      game.appendChild(bullet);
-      bullets.push(bullet);
-    }
-
-    // 충돌 감지
-    function checkCollision(bullet) {
-      const bRect = bullet.getBoundingClientRect();
-      const pRect = player.getBoundingClientRect();
-
-      return !(
-        bRect.bottom < pRect.top ||
-        bRect.top > pRect.bottom ||
-        bRect.right < pRect.left ||
-        bRect.left > pRect.right
-      );
-    }
-
-    // 게임 리셋
-    function resetGame() {
-      bullets.forEach(bullet => game.removeChild(bullet));
-      bullets = [];
-      playerX = 180;
-      player.style.left = playerX + "px";
-      isGameOver = false;
-      score = 0;
-      bulletSpeed = 5;
-      bulletInterval = 500;
-      gameSpeed = 1;
-      scoreElement.textContent = "점수: 0";
-      gameOverText.style.display = "none";
-      restartBtn.style.display = "none";
-    }
-
-    // 게임 루프
-    function gameLoop() {
-      if (isGameOver) return;
-
-      bullets.forEach((bullet, index) => {
-        let top = parseInt(bullet.style.top);
-        bullet.style.top = top + bulletSpeed + "px";
-
-        if (checkCollision(bullet)) {
-          gameOverText.style.display = "block";
-          restartBtn.style.display = "block";
-          isGameOver = true;
-        }
-
-        if (top > 600) {
-          game.removeChild(bullet);
-          bullets.splice(index, 1);
-          score++;
-          scoreElement.textContent = "점수: " + score;
-          
-          // 점수에 따라 난이도 증가
-          if (score % 10 === 0) {
-            bulletSpeed += 0.5;
-            bulletInterval = Math.max(200, bulletInterval - 50);
-            gameSpeed += 0.1;
-          }
-        }
-      });
-
-      requestAnimationFrame(gameLoop);
-    }
-
-    // 총알 주기적으로 생성
-    let bulletIntervalId = setInterval(() => {
-      if (!isGameOver) createBullet();
-    }, bulletInterval);
-
-    // 재시작 버튼
-    restartBtn.addEventListener("click", () => {
-      resetGame();
-      clearInterval(bulletIntervalId);
-      bulletIntervalId = setInterval(() => {
-        if (!isGameOver) createBullet();
-      }, bulletInterval);
-      gameLoop();
-    });
-
-    gameLoop();
-  </script>
-</body>
-</html>
